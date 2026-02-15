@@ -16,3 +16,8 @@ Success criteria:
 - Role-based access is consistently enforced across endpoints
 - Forbidden attempts return contract-aligned responses
 - Authorization behavior is test-backed and presentation-ready
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/07_authorization_pundit.md](prompts/07_authorization_pundit.md)

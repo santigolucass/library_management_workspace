@@ -19,3 +19,7 @@ I decided to define the API contract before implementing controllers to:
 
 Prompt used: [prompts/00_openapi_requirements_generation.md](prompts/00_openapi_requirements_generation.md)
 
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/00_openapi_requirements_generation.md](prompts/00_openapi_requirements_generation.md)

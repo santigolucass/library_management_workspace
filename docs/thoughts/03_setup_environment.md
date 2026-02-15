@@ -11,3 +11,8 @@ Scope for this milestone:
 --- 
 
 Asked AI to refine my thoughts and the outcome was the prompt on [03_setup_environment.md](prompts/03_setup_environment.md)
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/03_setup_environment.md](prompts/03_setup_environment.md)

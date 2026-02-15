@@ -13,3 +13,8 @@ This ensures the backend follows a strict contract and simplifies request specs 
 ---
 
 Prompt used: [prompts/01_openapi_generation.md](prompts/01_openapi_generation.md)
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/01_openapi_generation.md](prompts/01_openapi_generation.md)

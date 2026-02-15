@@ -12,3 +12,8 @@ Key decisions:
 - Return authenticated user + token on register/login
 - Keep error response shapes consistent with the OpenAPI contract
 - Treat logout as token invalidation strategy
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/06_auth_jwt.md](prompts/06_auth_jwt.md)

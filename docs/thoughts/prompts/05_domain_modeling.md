@@ -10,7 +10,7 @@ I need a setup and implementation plan for defining stable core domain data mode
 
 Context:
 - Project is a Rails API application
-- API contract source is `backend/docs/openapi-v1.yml`
+- API contract source is `docs/openapi-v1.yml`
 - Test stack uses RSpec (model specs should be first-class in this milestone)
 - Authentication is planned later (Devise + JWT), but model shapes must remain API-contract compatible
 - PostgreSQL is the database and should enforce critical invariants where appropriate

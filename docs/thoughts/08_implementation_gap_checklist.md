@@ -113,3 +113,8 @@ This checklist maps remaining implementation work to the current milestone order
 - Librarian can return borrowings; member cannot.
 - Member borrowings list only own; librarian sees all.
 - Dashboard endpoints enforce role and return contract-shaped payloads with real computed data.
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/08_implementation_gap_checklist.md](prompts/08_implementation_gap_checklist.md)

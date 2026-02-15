@@ -14,3 +14,8 @@ Key decisions:
 - Prepare `User` to support `devise` + JWT without changing API contract shapes
 - Encode borrowing invariants in model/database boundaries where possible
 - Cover critical domain rules with specs before moving to authentication
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/05_domain_modeling.md](prompts/05_domain_modeling.md)

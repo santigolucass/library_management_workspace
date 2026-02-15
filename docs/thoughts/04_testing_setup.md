@@ -16,3 +16,8 @@ Success criteria:
 - `bundle exec rspec` runs successfully
 - Coverage artifacts are generated in HTML format
 - Test stack is ready for model/auth/authz milestones
+
+
+## Prompt Reference
+
+Prompt used for this milestone: [prompts/04_testing_setup.md](prompts/04_testing_setup.md)
