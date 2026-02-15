@@ -583,7 +583,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Postman Automation Book {{runId}}\",\n  \"author\": \"Automation Bot\",\n  \"genre\": \"Testing\",\n  \"isbn\": \"{{runId}}-LIB-001\",\n  \"total_copies\": 3,\n  \"available_copies\": 3\n}",
+              "raw": "{\n  \"title\": \"Postman Automation Book {{runId}}\",\n  \"author\": \"Automation Bot\",\n  \"genre\": \"Testing\",\n  \"isbn\": \"{{runId}}-LIB-001\",\n  \"total_copies\": 3\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -861,6 +861,69 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"Postman Automation Book Updated {{runId}}\",\n  \"author\": \"Automation Bot\",\n  \"genre\": \"Testing\",\n  \"isbn\": \"{{runId}}-LIB-001\",\n  \"total_copies\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update book missing required fields (422)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Missing required field errors are present', function () {",
+                  "  pm.expect(payload.errors).to.be.an('object');",
+                  "  ['author', 'genre', 'isbn', 'total_copies'].forEach(function (key) {",
+                  "    pm.expect(payload.errors[key]).to.be.an('array');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Partial payload update {{runId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1637,7 +1700,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Workflow Book {{runId}}\",\n  \"author\": \"Workflow Librarian\",\n  \"genre\": \"Workflow\",\n  \"isbn\": \"{{runId}}-WF-001\",\n  \"total_copies\": 2,\n  \"available_copies\": 2\n}",
+                  "raw": "{\n  \"title\": \"Workflow Book {{runId}}\",\n  \"author\": \"Workflow Librarian\",\n  \"genre\": \"Workflow\",\n  \"isbn\": \"{{runId}}-WF-001\",\n  \"total_copies\": 2\n}",
                   "options": {
                     "raw": {
                       "language": "json"
