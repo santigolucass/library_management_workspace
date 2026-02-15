@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'USAGE'
+Run backend RSpec inside Docker.
+
+Usage:
+  bin/rspec
+  bin/rspec spec/models
+  bin/rspec spec/requests/auth_spec.rb:42
+USAGE
+  exit 0
+fi
+
+RSPEC_CMD="bundle exec rspec"
+if [[ $# -gt 0 ]]; then
+  RSPEC_CMD+=" $*"
+fi
+
+exec docker compose \
+  -f docker-compose.base.yml \
+  run --rm \
+  -e RAILS_ENV=test \
+  backend \
+  bash -lc "bundle install && bin/rails db:prepare && ${RSPEC_CMD}"

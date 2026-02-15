@@ -4,9 +4,38 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'USAGE'
+Stop and remove Docker resources for project stacks.
+
+Usage:
+  bin/cleanup
+
+This script runs `docker compose down -v --remove-orphans` for:
+  - app stack
+  - postman stack
+  - cypress stack
+USAGE
+  exit 0
+fi
+
 for target in app postman cypress; do
   docker compose \
     -f docker-compose.base.yml \
     -f "docker-compose.${target}.yml" \
     down -v --remove-orphans || true
 done
+
+cat <<'NOTES'
+Cleanup complete.
+
+Useful commands:
+  - Start app stack: bin/dev
+  - Run backend specs in Docker: bin/rspec
+  - Run Postman suite: bin/postman
+  - Run Cypress suite: bin/cypress
+
+Optional deeper Docker cleanup (global on your machine):
+  - docker system prune -f
+  - docker volume prune -f
+NOTES
