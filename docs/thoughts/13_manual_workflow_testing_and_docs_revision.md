@@ -1,6 +1,6 @@
 # Manual Workflow Testing and Documentation Revision
 
-At this stage, work focused on manual validation and project documentation quality.
+At this stage, work focused on manual validation and project documentation quality. AI iterations were small, mainly asking reviews and help fixing and adding coverage to tests, both cypress and rspec.
 
 ## What was done
 
