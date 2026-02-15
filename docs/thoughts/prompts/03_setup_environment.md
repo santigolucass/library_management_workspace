@@ -10,7 +10,7 @@ I need a setup plan for local infrastructure before implementing business featur
 
 Context:
 - Project is a Rails API
-- API contract exists at `docs/openapi-v1.yml`
+- API contract exists at `backend/docs/openapi-v1.yml`
 - I want PostgreSQL running with Docker Compose
 - I want to use dotenv for environment variables
 

@@ -10,7 +10,7 @@ I need a setup plan for implementing authentication endpoints after data modelin
 
 Context:
 - Project is a Rails API application
-- API contract source is `docs/openapi-v1.yml`
+- API contract source is `backend/docs/openapi-v1.yml`
 - Core models already exist and authentication should rely on stable identity data
 - Authentication stack is expected to use Devise + JWT-compatible patterns
 - Error response formats must remain contract-consistent across auth endpoints

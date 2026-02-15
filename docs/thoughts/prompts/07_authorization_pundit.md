@@ -5,7 +5,7 @@ I need a setup plan for implementing role-based authorization after authenticati
 Context:
 - Project is a Rails API application
 - Authentication is already in place and provides stable identity context
-- API contract source is `docs/openapi-v1.yml`
+- API contract source is `backend/docs/openapi-v1.yml`
 - Authorization should be implemented with Pundit
 - Request specs are used to validate API behavior (allowed and forbidden paths)
 
