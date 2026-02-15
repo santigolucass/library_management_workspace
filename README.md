@@ -346,15 +346,3 @@ Validation strategy:
 * Add tests for edge cases and failure paths
 * Review for idiomatic Rails/React structure
 * Enforce quality/security gates via CI
-
----
-
-# Suggested Review Walkthrough (10–15 Minutes)
-
-1. Requirement traceability table
-2. OpenAPI contract
-3. Role-based authorization boundaries
-4. Borrowing conflict rules
-5. Dashboards
-6. Tests and CI
-7. Trade-offs and next steps
