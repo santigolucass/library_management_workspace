@@ -26,4 +26,4 @@ exec docker compose \
   run --rm \
   -e RAILS_ENV=test \
   backend \
-  bash -lc "bundle install && bin/rails db:prepare && ${RSPEC_CMD}"
+  bash -lc "bundle install && bin/rails db:test:prepare && ${RSPEC_CMD}"
