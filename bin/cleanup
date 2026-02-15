@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+for target in app postman cypress; do
+  docker compose \
+    -f docker-compose.base.yml \
+    -f "docker-compose.${target}.yml" \
+    down -v --remove-orphans || true
+done

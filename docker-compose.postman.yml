@@ -1,0 +1,21 @@
+services:
+  backend:
+    command: >-
+      bash -lc "bundle install &&
+      rm -f tmp/pids/server.pid &&
+      bin/rails db:prepare &&
+      bin/rails server -b 0.0.0.0 -p 3000"
+
+  postman:
+    image: postman/newman:alpine
+    entrypoint:
+      - /bin/sh
+      - -lc
+    working_dir: /etc/newman
+    volumes:
+      - ./docs/postman:/etc/newman:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    command:
+      - newman run library-management.full-suite.postman_collection.json --environment library-management.local.postman_environment.json --env-var baseUrl=http://backend:3000/api/v1
