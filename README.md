@@ -201,35 +201,91 @@ npm run test:e2e:run
 
 ---
 
-# CI Pipelines
+## CI Pipelines
 
-CI exists in both repositories.
+CI is implemented separately for backend and frontend to keep quality gates close to each codebase.
 
-## Backend CI
+---
 
-* OpenAPI validation artifact
-* Brakeman + bundler-audit
-* RuboCop
-* Full RSpec suite on PostgreSQL
-* Targeted dashboard performance spec
+### Backend CI (`backend/.github/workflows/ci.yml`)
 
-## Backend Image Publishing
+Runs on pull requests and pushes to `main` with these jobs:
 
-On push to `main`, publishes Docker image to GHCR:
+* **openapi_docs**
+
+  * Lints and validates the OpenAPI specification
+  * Generates `docs/openapi-v1.html`
+  * Uploads the generated HTML documentation as a **downloadable GitHub Actions artifact**
+* **scan_ruby**
+
+  * Security gates via `bin/brakeman` and `bin/bundler-audit`
+* **lint**
+
+  * Style gate via `bin/rubocop -f github`
+* **rspec**
+
+  * Full test suite on PostgreSQL service (`RAILS_ENV=test`)
+  * Optional N+1 detection (`N_PLUS_ONE_DETECTION=true`)
+* **dashboard_performance**
+
+  * Regression spec focused on dashboard query behavior
+  * Guards against unintended aggregation or performance regressions
+
+---
+
+### Test and Coverage Strategy (Backend)
+
+The backend test suite validates both correctness and boundaries:
+
+* Request specs for all endpoints (success and error paths)
+* Authorization boundary tests (401 / 403)
+* Domain rule enforcement tests (409 conflicts for borrowing rules)
+* Validation behavior (422 responses and structured errors)
+* Service-level specs for core borrowing and return flows
+
+Test coverage is tracked with SimpleCov
+
+---
+
+### Postman Collections
+
+A Postman collection is included for manual and scripted API validation.
+
+It can be:
+
+* Imported into Postman UI for interactive exploration
+* Executed via `bin/postman` for containerized test execution
+
+This provides an additional consumer-facing validation layer beyond automated test suites.
+
+---
+
+### Backend Image Publishing (`backend/.github/workflows/publish-image.yml`)
+
+On push to `main`, publishes the backend Docker image to GHCR:
 
 * `main-latest`
 * `sha-<commit>`
 
-Used by frontend CI for live integration testing.
+This image is consumed by frontend CI for integration testing against a live backend container.
 
-## Frontend CI
+---
 
-* Lint
-* Unit tests
-* Build validation
-* Cypress against live backend container
+### Frontend CI (`frontend/.github/workflows/ci.yml`)
 
-Cypress runs against a real Rails container, not mocks.
+Runs on pull requests and pushes to `main` with these jobs:
+
+* **lint**: `npm run lint`
+* **unit**: `npm run test:run`
+* **build**: `npm run build`
+* **cypress**
+
+  * Boots PostgreSQL
+  * Pulls backend image (`ghcr.io/santigolucass/library-management:main-latest`)
+  * Starts a live Rails API container and waits for readiness
+  * Runs Cypress E2E tests against the live backend
+
+Cypress tests execute against a real backend container rather than mocks, validating true integration behavior.
 
 ---
 
