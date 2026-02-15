@@ -1,0 +1,2298 @@
+{
+  "info": {
+    "_postman_id": "6ce6dbe4-2972-4927-b24f-44260f03ab55",
+    "name": "Library Management API - Full Automated Suite",
+    "description": "Automated API suite with positive, negative, authorization, and end-to-end workflow scenarios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "10 Auth",
+      "item": [
+        {
+          "name": "Register librarian (201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = Date.now().toString() + '_' + Math.floor(Math.random() * 100000).toString();",
+                  "pm.environment.set('runId', runId);",
+                  "pm.environment.set('librarianEmail', 'librarian.' + runId + '@example.com');",
+                  "pm.environment.set('memberEmail', 'member.' + runId + '@example.com');",
+                  "pm.environment.set('librarianPassword', pm.environment.get('librarianPassword') || 'Password123!');",
+                  "pm.environment.set('memberPassword', pm.environment.get('memberPassword') || 'Password123!');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Contains token and librarian user', function () {",
+                  "  pm.expect(payload.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(payload.user.role).to.eql('librarian');",
+                  "});",
+                  "pm.environment.set('librarianToken', payload.token);",
+                  "pm.environment.set('librarianUserId', String(payload.user.id));",
+                  "pm.collectionVariables.set('bearerToken', payload.token);"
+                ]
+              }
+            }
+          ],
+          "id": "c7b53542-5322-428d-b228-fe9ed414ebc7",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{librarianEmail}}\",\n  \"password\": \"{{librarianPassword}}\",\n  \"role\": \"librarian\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register member (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const payload = pm.response.json();",
+                  "pm.environment.set('memberToken', payload.token);",
+                  "pm.environment.set('memberUserId', String(payload.user.id));"
+                ]
+              }
+            }
+          ],
+          "id": "498f1ca5-ce65-489d-aa0a-7c9d02507a9f",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"password\": \"{{memberPassword}}\",\n  \"role\": \"member\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register invalid payload (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "528fe381-56f6-437d-a848-9040ac30d9f6",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invalid-email\",\n  \"password\": \"123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login librarian (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.environment.set('librarianToken', payload.token);",
+                  "pm.collectionVariables.set('bearerToken', payload.token);"
+                ]
+              }
+            }
+          ],
+          "id": "8c258a5c-2f50-4497-bb28-d33cf56ae3ac",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{librarianEmail}}\",\n  \"password\": \"{{librarianPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login member (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.environment.set('memberToken', payload.token);"
+                ]
+              }
+            }
+          ],
+          "id": "a595633c-2b7f-40d5-93e8-bff2725fa981",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"password\": \"{{memberPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login invalid credentials (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "0576eca3-fe35-4147-8c7c-12f24b3b75af",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"password\": \"wrong-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout unauthorized (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () { pm.response.to.have.status(401); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "2a8659e1-1bb9-4528-bceb-0d53d66cc5b8",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout librarian (204)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "id": "53b0d043-d72c-4923-9f77-4ce21697854d",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login librarian again (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.environment.set('librarianToken', payload.token);",
+                  "pm.collectionVariables.set('bearerToken', payload.token);"
+                ]
+              }
+            }
+          ],
+          "id": "6038ca04-6990-44dd-8647-4dfcdcde6e0a",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{librarianEmail}}\",\n  \"password\": \"{{librarianPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "cad077a6-8400-438a-bca6-dbbd7a8406af"
+    },
+    {
+      "name": "20 Books",
+      "item": [
+        {
+          "name": "List books as librarian (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Books data is array', function () { pm.expect(payload.data).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "id": "ba47bc54-724b-4142-906f-8ae4a04a9aa2",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create book as librarian (201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const payload = pm.response.json();",
+                  "pm.collectionVariables.set('bookId', String(payload.data.id));"
+                ]
+              }
+            }
+          ],
+          "id": "2c47f140-22f8-470f-8289-ca8ad467290f",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Automation Book {{runId}}\",\n  \"author\": \"Automation Bot\",\n  \"genre\": \"Testing\",\n  \"isbn\": \"{{runId}}-LIB-001\",\n  \"total_copies\": 3,\n  \"available_copies\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create invalid book payload (422)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "9df089e1-8cbd-422e-978f-31d3f05d9a07",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"total_copies\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create book as member forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "1574c087-d521-41d4-9188-f68e942b324c",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Forbidden Book\",\n  \"author\": \"Member User\",\n  \"genre\": \"Unauthorized\",\n  \"isbn\": \"{{runId}}-FORBIDDEN-001\",\n  \"total_copies\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get existing book by id (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.expect(String(payload.data.id)).to.eql(pm.collectionVariables.get('bookId'));"
+                ]
+              }
+            }
+          ],
+          "id": "328fd305-a7d9-4b49-a2cd-03a67dc177ce",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get missing book (404)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "8b8344d9-889f-4070-a7b5-382f5c22b47e",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/books/99999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "99999999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update book as librarian (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Book update returns a book payload', function () {",
+                  "  pm.expect(payload.data).to.be.an('object');",
+                  "  pm.expect(payload.data.id).to.be.a('number');",
+                  "  pm.expect(payload.data.title).to.be.a('string');",
+                  "  pm.expect(payload.data.available_copies).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "6ec3e4dc-1e34-4b24-95bb-553e983fdb25",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Automation Book Updated {{runId}}\",\n  \"author\": \"Automation Bot\",\n  \"genre\": \"Testing\",\n  \"isbn\": \"{{runId}}-LIB-001\",\n  \"total_copies\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update book as member forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "77df015b-a398-46a7-9700-66607a11e7f0",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Member Update Attempt\",\n  \"author\": \"Automation Bot\",\n  \"genre\": \"Testing\",\n  \"isbn\": \"{{runId}}-LIB-001\",\n  \"total_copies\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "965dc672-19e9-4bbf-ad85-262e5e8f1a87"
+    },
+    {
+      "name": "30 Borrowings",
+      "item": [
+        {
+          "name": "List borrowings as member (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Borrowing list includes display objects and no top-level user_id/book_id', function () {",
+                  "  (payload.data || []).forEach(function (item) {",
+                  "    pm.expect(item.user).to.be.an('object');",
+                  "    pm.expect(item.user.id).to.be.a('number');",
+                  "    pm.expect(item.user.email).to.be.a('string');",
+                  "    pm.expect(item.book).to.be.an('object');",
+                  "    pm.expect(item.book.id).to.be.a('number');",
+                  "    pm.expect(item.book.title).to.be.a('string');",
+                  "    pm.expect(item).to.not.have.property('user_id');",
+                  "    pm.expect(item).to.not.have.property('book_id');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "8edc885d-9776-4866-a919-e04b29efd17f",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/borrowings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Borrow book as member (201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Borrow payload includes user.email and book.title', function () {",
+                  "  pm.expect(payload.data.user.email).to.be.a('string');",
+                  "  pm.expect(payload.data.book.title).to.be.a('string');",
+                  "});",
+                  "pm.collectionVariables.set('borrowingId', String(payload.data.id));"
+                ]
+              }
+            }
+          ],
+          "id": "eaa7f080-688d-4a66-a242-3c6f9fb9cfb4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"book_id\": \"{{bookId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/borrowings/borrow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings",
+                "borrow"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Borrow same book twice (409)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () { pm.response.to.have.status(409); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "31ff2636-9d7b-423b-aa2a-eaebaa2c9f48",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"book_id\": \"{{bookId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/borrowings/borrow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings",
+                "borrow"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Borrow book as librarian forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "9bb56471-fe4a-4d91-8a4e-8eaec5ab12e0",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"book_id\": \"{{bookId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/borrowings/borrow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings",
+                "borrow"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Return borrowing as member forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "41d9a6ed-5d6b-45a9-923a-2671e2c917e2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/borrowings/{{borrowingId}}/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings",
+                "{{borrowingId}}",
+                "return"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Return borrowing as librarian (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Return payload includes user.email and book.title', function () {",
+                  "  pm.expect(payload.data.user.email).to.be.a('string');",
+                  "  pm.expect(payload.data.book.title).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "2adf4ee7-cac3-4c39-aea4-b2831c75eb43",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/borrowings/{{borrowingId}}/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings",
+                "{{borrowingId}}",
+                "return"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Return missing borrowing (404)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "0b0d3c16-802c-4b59-9e5b-ab65202f6515",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/borrowings/99999999/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "borrowings",
+                "99999999",
+                "return"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "0c35f703-2794-46b2-b4ca-f11f899c7560"
+    },
+    {
+      "name": "40 Dashboards",
+      "item": [
+        {
+          "name": "Librarian dashboard as librarian (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Member dashboard borrowings include user.email and book.title', function () {",
+                  "  (payload.active_borrowings || []).concat(payload.overdue_borrowings || []).forEach(function (item) {",
+                  "    pm.expect(item.user).to.be.an('object');",
+                  "    pm.expect(item.user.email).to.be.a('string');",
+                  "    pm.expect(item.book).to.be.an('object');",
+                  "    pm.expect(item.book.title).to.be.a('string');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "9d6a35ce-df63-4c04-952a-3c730938172e",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/librarian",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "librarian"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Member dashboard as member (200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "id": "eb7bb055-5f8b-4c28-b07d-96c4b4210975",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/member",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "member"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Librarian dashboard as member forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "ce5c8c7b-de26-4ae1-a30f-56daeb3308e3",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/librarian",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "librarian"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Member dashboard as librarian forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error or errors payload', function () {",
+                  "  pm.expect(payload.error !== undefined || payload.errors !== undefined).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "id": "0a06ac5f-7916-490b-83d9-e66d2209a702",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/member",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "member"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "7bacd358-f0d4-45f8-a318-c1738c2261b3"
+    },
+    {
+      "name": "90 Workflows",
+      "item": [
+        {
+          "name": "Workflow - Librarian Management",
+          "item": [
+            {
+              "name": "WF1 Login librarian",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(200);",
+                      "const payload = pm.response.json();",
+                      "pm.environment.set('librarianToken', payload.token);",
+                      "pm.collectionVariables.set('bearerToken', payload.token);"
+                    ]
+                  }
+                }
+              ],
+              "id": "50bc4956-636a-487d-a13d-ff1c0ca8c9be",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{librarianEmail}}\",\n  \"password\": \"{{librarianPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF1 Create workflow book",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(201);",
+                      "const payload = pm.response.json();",
+                      "pm.collectionVariables.set('workflowBookId', String(payload.data.id));"
+                    ]
+                  }
+                }
+              ],
+              "id": "16ce3e04-c5c9-4c2d-9364-61cf71cef8e3",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Workflow Book {{runId}}\",\n  \"author\": \"Workflow Librarian\",\n  \"genre\": \"Workflow\",\n  \"isbn\": \"{{runId}}-WF-001\",\n  \"total_copies\": 2,\n  \"available_copies\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/books",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "books"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF1 Update workflow book",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(200);"
+                    ]
+                  }
+                }
+              ],
+              "id": "d54166a6-f0ed-4d74-b58e-0f12b5b062bb",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Workflow Book Updated {{runId}}\",\n  \"author\": \"Workflow Librarian\",\n  \"genre\": \"Workflow\",\n  \"isbn\": \"{{runId}}-WF-001\",\n  \"total_copies\": 3\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/books/{{workflowBookId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "books",
+                    "{{workflowBookId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "239ed35e-77f9-4f5b-9e8e-8e4c888cfe93"
+        },
+        {
+          "name": "Workflow - Member Borrow and Return",
+          "item": [
+            {
+              "name": "WF2 Login member",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(200);",
+                      "const payload = pm.response.json();",
+                      "pm.environment.set('memberToken', payload.token);"
+                    ]
+                  }
+                }
+              ],
+              "id": "cebe823f-858d-4f55-8743-3769613a50f8",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"password\": \"{{memberPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF2 Member borrows workflow book",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(201);",
+                      "const payload = pm.response.json();",
+                      "pm.expect(payload.data.user.email).to.be.a('string');",
+                      "pm.expect(payload.data.book.title).to.be.a('string');",
+                      "pm.collectionVariables.set('workflowBorrowingId', String(payload.data.id));"
+                    ]
+                  }
+                }
+              ],
+              "id": "1a05d0a6-4f78-4641-9500-ab96975084c8",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"book_id\": \"{{workflowBookId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/borrowings/borrow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "borrowings",
+                    "borrow"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF2 Login librarian",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(200);",
+                      "const payload = pm.response.json();",
+                      "pm.environment.set('librarianToken', payload.token);"
+                    ]
+                  }
+                }
+              ],
+              "id": "627de2d5-02b1-4593-be9b-7b8145d64f1d",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{librarianEmail}}\",\n  \"password\": \"{{librarianPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF2 Librarian returns workflow borrowing",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(200);",
+                      "const payload = pm.response.json();",
+                      "pm.expect(payload.data.user.email).to.be.a('string');",
+                      "pm.expect(payload.data.book.title).to.be.a('string');"
+                    ]
+                  }
+                }
+              ],
+              "id": "93c49a89-d0d6-4383-b7e9-a9da098875ec",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/borrowings/{{workflowBorrowingId}}/return",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "borrowings",
+                    "{{workflowBorrowingId}}",
+                    "return"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "6383e926-d925-4cfd-bd6b-65e7513d3fc4"
+        },
+        {
+          "name": "Workflow - Authorization Matrix",
+          "item": [
+            {
+              "name": "WF3 Member cannot create book (403)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(403);"
+                    ]
+                  }
+                }
+              ],
+              "id": "fd3da070-d398-4f3a-a3bd-7a56e70918b4",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Auth Matrix Denied\",\n  \"author\": \"Member\",\n  \"genre\": \"Denied\",\n  \"isbn\": \"{{runId}}-DENIED-001\",\n  \"total_copies\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/books",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "books"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF3 Librarian cannot borrow (403)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(403);"
+                    ]
+                  }
+                }
+              ],
+              "id": "0ba17b9c-ac07-4f67-a6c6-bb0bfb437a90",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"book_id\": \"{{workflowBookId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/borrowings/borrow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "borrowings",
+                    "borrow"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "WF3 No token cannot list books (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.response.to.have.status(401);"
+                    ]
+                  }
+                }
+              ],
+              "id": "f82a3aae-4a9d-45c9-a8ab-bffd689ad326",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/books",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "books"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "e3b93528-7813-40ee-9e15-fc5b513f706c"
+        }
+      ],
+      "id": "58d4800f-131e-4126-8c42-96f397436c13"
+    },
+    {
+      "name": "95 Cleanup",
+      "item": [
+        {
+          "name": "Delete workflow book as member forbidden (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('memberToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ],
+          "id": "87a0af83-9179-4a32-b19f-be78b1033a51",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{workflowBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{workflowBookId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete workflow book as librarian (204, no active borrowings)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "id": "0e099fe3-03f8-4390-a823-984cfa34d19f",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{workflowBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{workflowBookId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete missing book (404)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('bearerToken', pm.environment.get('librarianToken') || '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });",
+                  "const payload = pm.response.json();",
+                  "pm.test('Has error payload', function () { pm.expect(payload.error).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "id": "c54a697f-c63b-48ed-aeb5-97ba7db7c098",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/books/99999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "99999999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "d0458829-d3ec-4252-8535-c9ac4b9223d6"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.environment.get('runId')) {",
+          "  const runId = Date.now().toString() + '_' + Math.floor(Math.random() * 100000).toString();",
+          "  pm.environment.set('runId', runId);",
+          "  if (!pm.environment.get('librarianEmail')) pm.environment.set('librarianEmail', 'librarian.' + runId + '@example.com');",
+          "  if (!pm.environment.get('memberEmail')) pm.environment.set('memberEmail', 'member.' + runId + '@example.com');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "id": "b423b669-6b70-4c3b-bdb7-c877a7cbd300",
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "id": "a4e756e2-4c99-4f52-81e1-1778918b0f73",
+      "key": "bearerToken",
+      "value": ""
+    },
+    {
+      "id": "45f44380-2c3d-48cb-8631-3c959b7df072",
+      "key": "bookId",
+      "value": ""
+    },
+    {
+      "id": "f3cfcc30-fd54-4955-bbd2-2ba9f5955902",
+      "key": "borrowingId",
+      "value": ""
+    },
+    {
+      "id": "9d84aa56-32a9-4edf-92f2-f4a841bd903f",
+      "key": "workflowBookId",
+      "value": ""
+    },
+    {
+      "id": "5b334ae0-0a25-42b0-a066-9400aeacbeed",
+      "key": "workflowBorrowingId",
+      "value": ""
+    }
+  ]
+}
